@@ -201,7 +201,7 @@
                 document.getElementById("idCardSection").classList.remove("hidden");
 
                 // 🔍 ตรวจสอบว่าเคยใช้ Line นี้ยินยอมแล้วหรือยัง
-                fetch("https://script.google.com/macros/s/AKfycbwkebYkHKmOQ70-STvMfC6uuUy9MknB9NxrVeRWgQasUFuYP1CacRod_xjroh2-yLle-A/exec", {
+                fetch("https://script.google.com/macros/s/AKfycbyu8CNN26fW7yuSUHNBpyv6KWs2ueYpAc4ZDngRoc8bJfj_3EP0H44vzKqzDP74dEnx4Q/exec", {
                   method: 'POST',
                   body: new URLSearchParams({
                     action: 'checkUserId',
@@ -229,7 +229,7 @@
 
         // LIFF initialization
         showLoading("กำลังเชื่อมต่อ LIFF..."); // Show loading when LIFF starts
-        liff.init({ liffId: "2007674245-8mRaxkdj" }, () => {
+        liff.init({ liffId: "2007674245-QYVBj92E" }, () => {
             if (liff.isLoggedIn()) {
                 runApp();
             } else {
@@ -254,7 +254,7 @@
 
             showLoading("กำลังตรวจสอบข้อมูล...");
             
-            fetch("https://script.google.com/macros/s/AKfycbwkebYkHKmOQ70-STvMfC6uuUy9MknB9NxrVeRWgQasUFuYP1CacRod_xjroh2-yLle-A/exec", {
+            fetch("https://script.google.com/macros/s/AKfycbyu8CNN26fW7yuSUHNBpyv6KWs2ueYpAc4ZDngRoc8bJfj_3EP0H44vzKqzDP74dEnx4Q/exec", {
                 method: "POST",
                 body: new URLSearchParams({
                     action: "checkIdCard",
