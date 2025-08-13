@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NQA DAY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            margin: 30px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .hidden {
+            display: none;
+        }
+        img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 20px;
+            border: 2px solid #ccc;
+        }
+        h2, h3 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        
+        #pdpaSection {
+            margin-top: 30px;
+        }
+        .pdpa-box {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #E8F0FE;
+            margin-bottom: 15px;
+        }
+        .consent-area {
+            margin-top: 10px;
+        }
+        /* Loading Overlay Styles */
+        #loadingOverlay {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 10000;
+        }
+        .lds-ring {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        .lds-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            margin: 8px;
+            border: 8px solid #2d87f0;
+            border-radius: 50%;
+            animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #2d87f0 transparent transparent transparent;
+        }
+        .lds-ring div:nth-child(1) {
+            animation-delay: -0.45s;
+        }
+        .lds-ring div:nth-child(2) {
+            animation-delay: -0.3s;
+        }
+        .lds-ring div:nth-child(3) {
+            animation-delay: -0.15s;
+        }
+        @keyframes lds-ring {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+        
+        
+    </style>
+
+</head>
+<body>
+    <div id="loadingOverlay">
+        <div style="text-align:center;">
+            <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+            <p class="loading-text" id="loadingText">กำลังโหลดข้อมูล...</p>
+        </div>
+    </div>
+
+    <div class="container hidden" id="mainContent">
+        <h2>แสดงข้อมูลผู้ใช้ LINE</h2>
+        <img id="profileImage">
+        <!-- <label>User ID</label> -->
+        <input type="hidden" id="userId" readonly>
+
+        <!-- <label>Display Name</label> -->
+        <input type="hidden" id="displayName" readonly>
+
+        <!-- <label>Status Message</label> -->
+        <input type="hidden" id="statusMessage" readonly>
+        <p style="color: red;">***การเข้าร่วมกิจกรรม 1 บัญชี LINE ต่อ 1 ครั้งเท่านั้น***</p>
+        <hr>
+        <div id="idCardSection" class="hidden">
+<!--             <h3>กรุณากรอกเลขบัตรประชาชน</h3> -->
+<!--             <input type="text" id="idCardInput" placeholder="กรอกเลขบัตรประชาชน 13 หลัก"> -->
+            <button type="button" class="btn btn-primary btn-lg w-100" onclick="showPDPASection()" id="nextButton">ยืนยันการเข้าร่วมกิจกรรม</button>
+            <button type="button" class="btn btn-info btn-lg w-100" id="closeBtn" onclick="closeLiff()">ปิด</button>
+        </div>
+
+<!-- ---------------------------------------------------------------------------------------------------- -->
+        <div id="pdpaSection" class="hidden">
+            <h4 style="text-decoration: underline;">ข้อมูลของคุณ</h4>
+            <p><strong>ยศ-ชื่อ-สกุล:</strong>&nbsp;&nbsp; <span id="fullUserName" style="color: blue;"></span></p>
+
+            <hr>
+            
+            <h3>นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h3>
+            <div class="pdpa-box" id="pdpaContent">
+                </div>
+
+            <div class="consent-area" id="consentSection">
+                <input type="checkbox" id="consentCheckbox" style="vertical-align: middle; margin-right: 5px;">
+                <label for="consentCheckbox" style="display: inline;">ข้าพเจ้าได้อ่านและทำความเข้าใจวัตถุประสงค์ของการเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลข้างต้นแล้ว และขอให้ความยินยอมในการเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อวัตถุประสงค์ดังกล่าว</label>
+            </div>
+            <br>
+            <br>
+            <button type="button" class="btn btn-danger btn-lg w-100" onclick="submitConsent()" id="saveBtn">บันทึกการยินยอม</button>
+        </div>
+            <p id="consentMessage" style="margin-top: 10px; color: red;"></p>
+            <button type="button" class="btn btn-info btn-lg w-100 hidden" id="closeBtn" onclick="closeLiff()">ปิด</button>
+    </div>
+
+
+  
+    <!-- ---------------------------------------------------------------------------------------------------- -->
+    <script src="https://static.line-scdn.net/liff/edge/versions/2.9.0/sdk.js"></script>
+    <script>
+        // Function to show loading overlay
+        function showLoading(message = "กำลังโหลดข้อมูล...") {
+            document.getElementById("loadingText").textContent = message;
+            document.getElementById("loadingOverlay").style.display = "flex";
+        }
+
+        // Function to hide loading overlay
+        function hideLoading() {
+            document.getElementById("loadingOverlay").style.display = "none";
+        }
+
+        // Function to run after LIFF is initialized and logged in
+        function runApp() {
+            hideLoading(); // Hide initial loading once LIFF profile is fetched
+            document.getElementById("mainContent").classList.remove("hidden"); // Show main content
+            
+            liff.getProfile().then(profile => {
+                document.getElementById("profileImage").src = profile.pictureUrl;
+                document.getElementById("userId").value = profile.userId;
+                document.getElementById("displayName").value = profile.displayName;
+                document.getElementById("statusMessage").value = profile.statusMessage || '-';
+                document.getElementById("idCardSection").classList.remove("hidden");
+
+                // 🔍 ตรวจสอบว่าเคยใช้ Line นี้ยินยอมแล้วหรือยัง
+                fetch("https://script.google.com/macros/s/AKfycbwkebYkHKmOQ70-STvMfC6uuUy9MknB9NxrVeRWgQasUFuYP1CacRod_xjroh2-yLle-A/exec", {
+                  method: 'POST',
+                  body: new URLSearchParams({
+                    action: 'checkUserId',
+                    userId: liff.getDecodedIDToken().sub // หรือ profile.userId
+                  })
+                })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.status === 'exists') {
+                    alert("คุณได้ใช้ LINE นี้ลงทะเบียนไปแล้ว");
+                    // ซ่อนแบบฟอร์มหรือ redirect ได้เลย
+                      document.getElementById("nextButton").style.display = 'none';
+                      document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
+                  } else {
+                    document.getElementById("idCardSection").classList.remove("hidden");
+                  }
+                });
+                
+            }).catch(err => {
+                hideLoading(); // Hide loading even if there's an error
+                console.error('getProfile error:', err);
+                alert("เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์ LINE: " + err.message);
+            });
+        }
+
+        // LIFF initialization
+        showLoading("กำลังเชื่อมต่อ LIFF..."); // Show loading when LIFF starts
+        liff.init({ liffId: "2007674245-8mRaxkdj" }, () => {
+            if (liff.isLoggedIn()) {
+                runApp();
+            } else {
+                liff.login();
+            }
+        }, err => {
+            hideLoading(); // Hide loading if LIFF init fails
+            console.error('LIFF init error:', err);
+            alert("เกิดข้อผิดพลาดในการเริ่มต้น LIFF: " + err.message);
+        });
+
+        // Function to show PDPA section and fetch data
+        function showPDPASection() {
+            const idCardInput = document.getElementById("idCardInput");
+            const nextButton = document.getElementById("nextButton");
+                
+            const idCard = idCardInput.value.trim();
+            if (!/^\d{13}$/.test(idCard)) {
+                alert("กรุณากรอกเลขบัตรประชาชนให้ถูกต้อง (13 หลัก)");
+                return;
+            }
+
+            showLoading("กำลังตรวจสอบข้อมูล...");
+            
+            fetch("https://script.google.com/macros/s/AKfycbwkebYkHKmOQ70-STvMfC6uuUy9MknB9NxrVeRWgQasUFuYP1CacRod_xjroh2-yLle-A/exec", {
+                method: "POST",
+                body: new URLSearchParams({
+                    action: "checkIdCard",
+                    idCard: idCard
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.status === 'success') {
+                    // **ปรับปรุงการแสดงผลข้อมูล ยศ-ชื่อ-สกุล ตรงนี้**
+                    const userTitle = data.title || '';
+                    const userFirstName = data.firstName || '';
+                    const userLastName = data.lastName || '';
+                    const fullUserName = `${userTitle} ${userFirstName} ${userLastName}`.trim();
+                    
+                    document.getElementById("fullUserName").textContent = fullUserName || '-';
+                    //document.getElementById("nextButton").disabled = true;
+                    document.getElementById("pdpaContent").innerHTML = data.pdpaContent || 'ไม่มีข้อมูลนโยบายคุ้มครองข้อมูลส่วนบุคคล';
+
+                    if (data.consent === '1') {
+                        alert("คุณได้ยินยอมนโยบายนี้แล้ว ไม่จำเป็นต้องทำรายการซ้ำ");
+                        //document.getElementById("consentSection").style.display = "none";
+                        document.getElementById("saveBtn").style.display = "none";
+                        document.getElementById("pdpaSection").classList.add("d-none");
+                        document.getElementById("consentMessage").textContent = "คุณได้ยอมรับเงื่อนไขตามนโยบายนี้แล้ว";
+                        document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
+                    } else {
+                        document.getElementById("consentSection").style.display = "block";
+                    }
+                    document.getElementById("pdpaSection").classList.remove("hidden");
+                    // **ส่วนที่เพิ่มเข้ามา: Disabled ช่องกรอก ID และปุ่ม "ถัดไป"**
+                    idCardInput.disabled = true;
+                    nextButton.style.display = 'none';
+                    
+                } else if (data.status === 'notFound') {
+                    alert("ไม่พบข้อมูลบัตรประชาชนนี้ในระบบ");
+                } else {
+                    alert(data.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ");
+                }
+            })
+            .catch(err => {
+                hideLoading(); // Hide loading if an error occurs during fetch
+                alert("เกิดข้อผิดพลาดในการดึงข้อมูล: " + err.message);
+                console.error('Fetch error:', err);
+            });
+        }
+
+        
+
+        function closeLiff() {
+          liff.closeWindow();
+        }    
+        
+    </script>
+</body>
+</html>
