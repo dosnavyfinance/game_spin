@@ -185,7 +185,7 @@
         // Function to run after LIFF is initialized and logged in
         function runApp() {
             //document.getElementById("mainContent").classList.remove("hidden"); // Show main content
-            
+            hideLoading(); // Hide initial loading once LIFF profile is fetched
             liff.getProfile().then(profile => {
                 document.getElementById("profileImage").src = profile.pictureUrl;
                 document.getElementById("userId").value = profile.userId;
@@ -203,7 +203,6 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-					hideLoading(); // Hide initial loading once LIFF profile is fetched
 					document.getElementById("mainContent").classList.remove("hidden"); // แสดงเนื้อหาหลัก
 					
                   if (data.status === 'exists') {
