@@ -4,7 +4,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>กิจกรรม</title>
+    <title>NQA DAY</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet">
     <style>
         body {
@@ -19,7 +19,24 @@
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            text-align: center;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .hidden {
+            display: none;
         }
         img {
             width: 100px;
@@ -30,18 +47,25 @@
             margin: 0 auto 20px;
             border: 2px solid #ccc;
         }
-        h2 {
+        h2, h3 {
             text-align: center;
             color: #2c3e50;
         }
-        .hidden {
-            display: none !important; /* เพิ่ม !important เพื่อให้แน่ใจว่าถูกซ่อน */
+        
+        #pdpaSection {
+            margin-top: 30px;
         }
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            font-size: 16px;
-            cursor: pointer;
+        .pdpa-box {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #E8F0FE;
+            margin-bottom: 15px;
+        }
+        .consent-area {
+            margin-top: 10px;
         }
         /* Loading Overlay Styles */
         #loadingOverlay {
@@ -74,9 +98,15 @@
             animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
             border-color: #2d87f0 transparent transparent transparent;
         }
-        .lds-ring div:nth-child(1) { animation-delay: -0.45s; }
-        .lds-ring div:nth-child(2) { animation-delay: -0.3s; }
-        .lds-ring div:nth-child(3) { animation-delay: -0.15s; }
+        .lds-ring div:nth-child(1) {
+            animation-delay: -0.45s;
+        }
+        .lds-ring div:nth-child(2) {
+            animation-delay: -0.3s;
+        }
+        .lds-ring div:nth-child(3) {
+            animation-delay: -0.15s;
+        }
         @keyframes lds-ring {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -87,9 +117,9 @@
             color: #333;
         }
     </style>
+
 </head>
 <body>
-
     <div id="loadingOverlay">
         <div style="text-align:center;">
             <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
@@ -98,65 +128,109 @@
     </div>
 
     <div class="container hidden" id="mainContent">
-        <h2>ข้อมูลผู้ใช้ LINE</h2>
-        <img id="profileImage" src="">
-        <h3 id="displayName"></h3>
-        
+        <h2>แสดงข้อมูลผู้ใช้ LINE</h2>
+        <img id="profileImage">
+		<h3 id="displayName"></h3>
+	
         <input type="hidden" id="userId" readonly>
-
+        <input type="hidden" id="statusMessage" readonly>
+		
+        <p style="color: red;">***การเข้าร่วมกิจกรรม 1 บัญชี LINE ต่อ 1 ครั้งเท่านั้น***</p>
         <hr>
-        
-        <div id="buttons-container">
-            <button type="button" class="btn btn-primary btn-lg w-100" id="joinButton">ยืนยันการเข้าร่วมกิจกรรม</button>
-            <button type="button" class="btn btn-secondary btn-lg w-100" id="exitButton">ออกจากกิจกรรม</button>
+        <div id="idCardSection" class="hidden">
+            <button type="button" class="btn btn-primary btn-lg w-100" onclick="showPDPASection()" id="nextButton">ยืนยันการเข้าร่วมกิจกรรม</button>
+            <br>
+            <button type="button" class="btn btn-info btn-lg w-100" id="closeBtn" onclick="closeLiff()">ออกจากกิจกรรม</button>
         </div>
-        
-        <p id="statusMessage" style="margin-top: 10px;"></p>
-    </div>
-    
+		
+		<p id="statusMessage" style="margin-top: 10px;"></p>
+	</div>
+
+    <!-- ---------------------------------------------------------------------------------------------------- -->
     <script src="https://static.line-scdn.net/liff/edge/versions/2.9.0/sdk.js"></script>
     <script>
-        const YOUR_LIFF_ID = "2007674245-QYVBj92E";
+		const YOUR_LIFF_ID = "2007674245-QYVBj92E";
         const YOUR_GAS_URL = "https://script.google.com/macros/s/AKfycbyu8CNN26fW7yuSUHNBpyv6KWs2ueYpAc4ZDngRoc8bJfj_3EP0H44vzKqzDP74dEnx4Q/exec";
-
+			
+        // Function to show loading overlay
         function showLoading(message = "กำลังโหลดข้อมูล...") {
             document.getElementById("loadingText").textContent = message;
-            document.getElementById("loadingOverlay").classList.remove("hidden");
+            document.getElementById("loadingOverlay").style.display = "flex";
         }
 
+        // Function to hide loading overlay
         function hideLoading() {
-            document.getElementById("loadingOverlay").classList.add("hidden");
+            document.getElementById("loadingOverlay").style.display = "none";
         }
 
-        function getUserProfile() {
+        // Function to run after LIFF is initialized and logged in
+        function runApp() {
+            hideLoading(); // Hide initial loading once LIFF profile is fetched
+            document.getElementById("mainContent").classList.remove("hidden"); // Show main content
+            
             liff.getProfile().then(profile => {
                 document.getElementById("profileImage").src = profile.pictureUrl;
-                document.getElementById("displayName").textContent = profile.displayName;
                 document.getElementById("userId").value = profile.userId;
+                document.getElementById("displayName").value = profile.displayName;
+                document.getElementById("statusMessage").value = profile.statusMessage || '-';
+               //  document.getElementById("idCardSection").classList.remove("hidden");
+
+                // 🔍 ตรวจสอบว่าเคยใช้ Line นี้ยินยอมแล้วหรือยัง
+                fetch(YOUR_GAS_URL, {
+					method: 'POST',
+					headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(postData),
+            })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.status === 'exists') {
+                    alert("คุณได้ใช้ LINE นี้ลงทะเบียนไปแล้ว");
+                    // ซ่อนแบบฟอร์มหรือ redirect ได้เลย
+                      document.getElementById("nextButton").style.display = 'none';
+                      document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
+                  } else {
+                    document.getElementById("idCardSection").classList.remove("hidden");
+                  }
+                });
                 
-                hideLoading();
-                document.getElementById("mainContent").classList.remove("hidden");
             }).catch(err => {
-                hideLoading();
+                hideLoading(); // Hide loading even if there's an error
                 console.error('getProfile error:', err);
-                alert("เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์ LINE");
+                alert("เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์ LINE: " + err.message);
             });
         }
-        
-        function sendDataToGas() {
-            showLoading("กำลังส่งข้อมูล...");
 
+        // LIFF initialization
+        showLoading("กำลังเชื่อมต่อ LIFF..."); // Show loading when LIFF starts
+        liff.init({ liffId: "2007674245-QYVBj92E" }, () => {
+            if (liff.isLoggedIn()) {
+                runApp();
+            } else {
+                liff.login();
+            }
+        }, err => {
+            hideLoading(); // Hide loading if LIFF init fails
+            console.error('LIFF init error:', err);
+            alert("เกิดข้อผิดพลาดในการเริ่มต้น LIFF: " + err.message);
+        });
+
+        // Function to show PDPA section and fetch data
+        function showPDPASection() {
+			showLoading("กำลังตรวจสอบข้อมูล...");
+			
             const userId = document.getElementById("userId").value;
             const displayName = document.getElementById("displayName").textContent;
             const pictureUrl = document.getElementById("profileImage").src;
-            
+                
             const postData = {
                 userId: userId,
                 displayName: displayName,
                 pictureUrl: pictureUrl,
                 statusMessage: "N/A"
             };
-
+            
             fetch(YOUR_GAS_URL, {
                 method: 'POST',
                 headers: {
@@ -167,7 +241,7 @@
             .then(res => res.json())
             .then(data => {
                 hideLoading();
-                document.getElementById("statusMessage").textContent = data.result;
+				document.getElementById("statusMessage").textContent = data.result;
                 if (data.result === 'User ID นี้ได้ร่วมกิจกรรมไปแล้ว') {
                     document.getElementById("statusMessage").style.color = 'red';
                 } else {
@@ -181,35 +255,13 @@
                 document.getElementById("statusMessage").style.color = 'red';
             });
         }
+     
 
         function closeLiff() {
-            liff.closeWindow();
-        }
-
-        // LIFF initialization
-        showLoading("กำลังเชื่อมต่อ LIFF...");
-        liff.init({ liffId: YOUR_LIFF_ID })
-        .then(() => {
-            if (liff.isLoggedIn()) {
-                getUserProfile();
-            } else {
-                liff.login();
-            }
-        })
-        .catch(err => {
-            hideLoading();
-            console.error('LIFF init error:', err);
-            alert("เกิดข้อผิดพลาดในการเริ่มต้น LIFF");
-        });
-
-        // Event listeners for buttons
-        document.getElementById('joinButton').addEventListener('click', () => {
-            sendDataToGas();
-        });
-
-        document.getElementById('exitButton').addEventListener('click', () => {
-            closeLiff();
-        });
+          liff.closeWindow();
+        }    
+        
     </script>
 </body>
 </html>
+
