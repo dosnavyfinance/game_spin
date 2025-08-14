@@ -138,30 +138,16 @@
         <input type="hidden" id="statusMessage" readonly>
         <p style="color: red;">***การเข้าร่วมกิจกรรม 1 บัญชี LINE ต่อ 1 ครั้งเท่านั้น***</p>
         <hr>
-        <div id="idCardSection" class="hidden">
-            <button type="button" class="btn btn-primary btn-lg w-100" onclick="submitConsent()" id="nextButton">ยืนยันการเข้าร่วมกิจกรรม</button>
+        <div id="idCardSection">
+            <button type="button" class="btn btn-primary btn-lg w-100" onclick="submitConsent()" id="nextButton" disabled>
+                <span id="buttonText">ยืนยันการเข้าร่วมกิจกรรม</span>
+                <span id="buttonSpinner" class="spinner-grow spinner-grow-sm d-none" role="status" aria-hidden="true"></span>
+                <span id="buttonSpinner2" class="spinner-grow spinner-grow-sm d-none" role="status" aria-hidden="true"></span>
+            </button>
         </div>
 		<p id="consentMessage" style="margin-top: 10px; color: red;"></p>
 <!-- ---------------------------------------------------------------------------------------------------- -->
-        <div id="pdpaSection" class="hidden">
-            <h4 style="text-decoration: underline;">ข้อมูลของคุณ</h4>
-            <p><strong>ยศ-ชื่อ-สกุล:</strong>&nbsp;&nbsp; <span id="fullUserName" style="color: blue;"></span></p>
-
-            <hr>
-            
-            <h3>นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h3>
-            <div class="pdpa-box" id="pdpaContent">
-                </div>
-
-            <div class="consent-area" id="consentSection">
-                <input type="checkbox" id="consentCheckbox" style="vertical-align: middle; margin-right: 5px;">
-                <label for="consentCheckbox" style="display: inline;">ข้าพเจ้าได้อ่านและทำความเข้าใจวัตถุประสงค์ของการเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลข้างต้นแล้ว และขอให้ความยินยอมในการเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อวัตถุประสงค์ดังกล่าว</label>
-            </div>
-            <br>
-            <br>
-            <button type="button" class="btn btn-danger btn-lg w-100" onclick="submitConsent1()" id="saveBtn">บันทึกการยินยอม</button>
-        </div>
-            <p id="consentMessage" style="margin-top: 10px; color: red;"></p>
+        
             <button type="button" class="btn btn-info btn-lg w-100 hidden" id="closeBtn" onclick="closeLiff()">ปิด</button>
 			<!-- ---------------------------------------------------------------------------------------------------- -->
     </div>
@@ -170,7 +156,9 @@
     <script>
 		const YOUR_LIFF_ID = "2007674245-QYVBj92E";
         const YOUR_GAS_URL = "https://script.google.com/macros/s/AKfycbyu8CNN26fW7yuSUHNBpyv6KWs2ueYpAc4ZDngRoc8bJfj_3EP0H44vzKqzDP74dEnx4Q/exec";
-	
+		// กำหนดเวลาขั้นต่ำที่ต้องการให้ loading แสดง (หน่วยมิลลิวินาที)
+        const MIN_LOADING_TIME = 2000; // 2 วินาที
+		
         // Function to show loading overlay
         function showLoading(message = "กำลังโหลดข้อมูล...") {
             document.getElementById("loadingText").textContent = message;
@@ -182,42 +170,79 @@
             document.getElementById("loadingOverlay").style.display = "none";
         }
 
-        // Function to run after LIFF is initialized and logged in
-        function runApp() {
-			hideLoading(); // Hide initial loading once LIFF profile is fetched
-            document.getElementById("mainContent").classList.remove("hidden"); // Show main content
-            liff.getProfile().then(profile => {
+		function toggleButtonLoading(isLoading) {
+            const button = document.getElementById("nextButton");
+            const buttonText = document.getElementById("buttonText");
+            const spinner1 = document.getElementById("buttonSpinner");
+            const spinner2 = document.getElementById("buttonSpinner2");
+
+            if (isLoading) {
+                button.disabled = true;
+                buttonText.style.display = "none";
+                spinner1.classList.remove("d-none");
+                spinner2.classList.remove("d-none");
+            } else {
+                button.disabled = false;
+                buttonText.style.display = "inline";
+                spinner1.classList.add("d-none");
+                spinner2.classList.add("d-none");
+            }
+        }
+
+         function runApp() {
+            // สร้าง Promise สำหรับการหน่วงเวลาขั้นต่ำ
+            const minTimePromise = new Promise(resolve => {
+                setTimeout(resolve, MIN_LOADING_TIME);
+            });
+            
+            // สร้าง Promise สำหรับการดึงข้อมูลโปรไฟล์และตรวจสอบกับ GAS
+            const dataPromise = liff.getProfile().then(profile => {
                 document.getElementById("profileImage").src = profile.pictureUrl;
                 document.getElementById("userId").value = profile.userId;
-                 document.getElementById("displayName").textContent = profile.displayName; // แก้ไข: ใช้ .textContent แทน .value
+                document.getElementById("displayName").textContent = profile.displayName;
                 document.getElementById("statusMessage").value = profile.statusMessage || '-';
-                	
-				
-                // 🔍 ตรวจสอบว่าเคยใช้ Line นี้ยินยอมแล้วหรือยัง
-                fetch(YOUR_GAS_URL, {
-                  method: 'POST',
-                  body: new URLSearchParams({
-                    action: 'checkUserId',
-                    userId: liff.getDecodedIDToken().sub // หรือ profile.userId
-                  })
+                
+                // เริ่มกระบวนการตรวจสอบ
+                toggleButtonLoading(true);
+                document.getElementById("buttonText").textContent = "กำลังตรวจสอบข้อมูล...";
+
+                return fetch(YOUR_GAS_URL, {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        action: 'checkUserId',
+                        userId: profile.userId
+                    })
                 })
                 .then(res => res.json())
                 .then(data => {
-                  if (data.status === 'exists') {
-                    alert("คุณได้ใช้ LINE นี้ลงทะเบียนไปแล้ว");
-                    // ซ่อนแบบฟอร์มหรือ redirect ได้เลย
-					  document.getElementById("idCardSection").style.display = 'none'; // ซ่อนส่วนปุ่ม
-                      //document.getElementById("nextButton").style.display = 'none';
-                      document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
-                  } else {
-                    document.getElementById("idCardSection").classList.remove("hidden");
-                  }
+                    return { profile, data };
                 });
-				
-            }).catch(err => {
-                hideLoading(); // Hide loading even if there's an error
-                console.error('getProfile error:', err);
-                alert("เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์ LINE: " + err.message);
+            });
+
+            // รอให้ทั้งสอง Promise (เวลาและข้อมูล) ทำงานเสร็จ
+            Promise.all([minTimePromise, dataPromise])
+            .then(([_, result]) => {
+                const { profile, data } = result;
+
+                hideLoading();
+                document.getElementById("mainContent").classList.remove("hidden");
+                
+                toggleButtonLoading(false);
+                document.getElementById("buttonText").textContent = "ยืนยันการเข้าร่วมกิจกรรม";
+
+                if (data.status === 'exists') {
+                    alert("คุณได้ใช้ LINE นี้ลงทะเบียนไปแล้ว");
+                    document.getElementById("idCardSection").style.display = 'none';
+                    document.getElementById("closeBtn").classList.remove("hidden");
+                } else {
+                    document.getElementById("nextButton").disabled = false;
+                }
+            })
+            .catch(err => {
+                hideLoading();
+                document.getElementById("mainContent").classList.remove("hidden");
+                console.error('Error:', err);
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล: " + err.message);
             });
         }
 
@@ -237,14 +262,14 @@
 
         
         // Function to submit consent
-        function submitConsent() {
-            
+        function submitConsent() { 
             const lineUserId = document.getElementById("userId").value;
             const displayName = document.getElementById("displayName").value;
             const statusMessage = document.getElementById("statusMessage").value;
             const pictureUrl = document.getElementById("profileImage").src;
         
-            showLoading("กำลังบันทึกข้อมูล...");
+            toggleButtonLoading(true);
+            document.getElementById("buttonText").textContent = "กำลังบันทึก...";
         
             fetch(YOUR_GAS_URL, {
                 method: "POST",
@@ -261,12 +286,12 @@
                 hideLoading();
                 if (data.status === "success") {
                     alert("บันทึกข้อมูลเรียบร้อยแล้ว");
-                 
                     document.getElementById("consentMessage").textContent = "คุณได้บันทึกความยินยอมเรียบร้อยแล้ว";
-                    document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
-					document.getElementById("idCardSection").classList.add("hidden"); // ซ่อนปุ่มถัดไป
+                    document.getElementById("idCardSection").style.display = 'none';
+                    document.getElementById("closeBtn").classList.remove("hidden");
                 } else {
                     alert("เกิดข้อผิดพลาด: " + data.message);
+					document.getElementById("nextButton").disabled = false;
                 }
             })
             .catch(err => {
