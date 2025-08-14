@@ -184,14 +184,14 @@
 
         // Function to run after LIFF is initialized and logged in
         function runApp() {
+			hideLoading(); // Hide initial loading once LIFF profile is fetched
             document.getElementById("mainContent").classList.remove("hidden"); // Show main content
             liff.getProfile().then(profile => {
                 document.getElementById("profileImage").src = profile.pictureUrl;
                 document.getElementById("userId").value = profile.userId;
                  document.getElementById("displayName").textContent = profile.displayName; // แก้ไข: ใช้ .textContent แทน .value
                 document.getElementById("statusMessage").value = profile.statusMessage || '-';
-                //document.getElementById("idCardSection").classList.remove("hidden");
-				hideLoading(); // Hide initial loading once LIFF profile is fetched			
+                	
 				
                 // 🔍 ตรวจสอบว่าเคยใช้ Line นี้ยินยอมแล้วหรือยัง
                 fetch(YOUR_GAS_URL, {
@@ -213,15 +213,9 @@
                     document.getElementById("idCardSection").classList.remove("hidden");
                   }
                 });
-                .catch(err => {
-                    hideLoading();
-                    document.getElementById("mainContent").classList.remove("hidden"); // แสดงเนื้อหาหลัก
-                    console.error('Fetch error:', err);
-                    alert("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล: " + err.message);
-                });
+				
             }).catch(err => {
                 hideLoading(); // Hide loading even if there's an error
-				document.getElementById("mainContent").classList.remove("hidden"); // แสดงเนื้อหาหลัก
                 console.error('getProfile error:', err);
                 alert("เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์ LINE: " + err.message);
             });
