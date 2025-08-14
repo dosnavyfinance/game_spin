@@ -184,7 +184,6 @@
 
         // Function to run after LIFF is initialized and logged in
         function runApp() {
-            hideLoading(); // Hide initial loading once LIFF profile is fetched
             document.getElementById("mainContent").classList.remove("hidden"); // Show main content
             
             liff.getProfile().then(profile => {
@@ -193,7 +192,8 @@
                 document.getElementById("displayName").value = profile.displayName;
                 document.getElementById("statusMessage").value = profile.statusMessage || '-';
                 //document.getElementById("idCardSection").classList.remove("hidden");
-
+			hideLoading(); // Hide initial loading once LIFF profile is fetched
+				
                 // 🔍 ตรวจสอบว่าเคยใช้ Line นี้ยินยอมแล้วหรือยัง
                 fetch(YOUR_GAS_URL, {
                   method: 'POST',
