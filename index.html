@@ -4,7 +4,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NQA DAY</title>
+    <title>PDPA</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet">
     <style>
         body {
@@ -116,6 +116,8 @@
             font-size: 1.2rem;
             color: #333;
         }
+        
+        
     </style>
 
 </head>
@@ -133,15 +135,16 @@
 		<h3 id="displayName"></h3>
 		
         <input type="hidden" id="userId" readonly>
+        <input type="hidden" id="displayName" readonly>
+
+        <!-- <label>Status Message</label> -->
         <input type="hidden" id="statusMessage" readonly>
-        <p style="color: red;">***การเข้าร่วมกิจกรรม 1 บัญชี LINE ต่อ 1 ครั้งเท่านั้น***</p>
+        <p style="color: red;">***กรุณาใช้บัญชี LINE ส่วนตัวของคุณเองในการลงข้อมูล เพื่อสำหรับการพัฒนาบริการอื่นๆ ต่อไป***</p>
         <hr>
         <div id="idCardSection" class="hidden">
-            <button type="button" class="btn btn-primary btn-lg w-100" onclick="showPDPASection()" id="nextButton">ยืนยันการเข้าร่วมกิจกรรม</button>
-            <br>
-            <button type="button" class="btn btn-info btn-lg w-100" id="closeBtn" onclick="closeLiff()">ออกจากกิจกรรม</button>
+            <button type="button" class="btn btn-primary btn-lg w-100" onclick="submitConsent()" id="nextButton">ถัดไป</button>
         </div>
-
+		<p id="consentMessage" style="margin-top: 10px; color: red;"></p>
 <!-- ---------------------------------------------------------------------------------------------------- -->
         <div id="pdpaSection" class="hidden">
             <h4 style="text-decoration: underline;">ข้อมูลของคุณ</h4>
@@ -159,20 +162,18 @@
             </div>
             <br>
             <br>
-            <button type="button" class="btn btn-danger btn-lg w-100" onclick="submitConsent()" id="saveBtn">บันทึกการยินยอม</button>
+            <button type="button" class="btn btn-danger btn-lg w-100" onclick="submitConsent1()" id="saveBtn">บันทึกการยินยอม</button>
         </div>
             <p id="consentMessage" style="margin-top: 10px; color: red;"></p>
             <button type="button" class="btn btn-info btn-lg w-100 hidden" id="closeBtn" onclick="closeLiff()">ปิด</button>
+			<!-- ---------------------------------------------------------------------------------------------------- -->
     </div>
-
-
-  
-    <!-- ---------------------------------------------------------------------------------------------------- -->
+    
     <script src="https://static.line-scdn.net/liff/edge/versions/2.9.0/sdk.js"></script>
     <script>
 		const YOUR_LIFF_ID = "2007674245-QYVBj92E";
         const YOUR_GAS_URL = "https://script.google.com/macros/s/AKfycbyu8CNN26fW7yuSUHNBpyv6KWs2ueYpAc4ZDngRoc8bJfj_3EP0H44vzKqzDP74dEnx4Q/exec";
-		
+	
         // Function to show loading overlay
         function showLoading(message = "กำลังโหลดข้อมูล...") {
             document.getElementById("loadingText").textContent = message;
@@ -194,7 +195,7 @@
                 document.getElementById("userId").value = profile.userId;
                 document.getElementById("displayName").value = profile.displayName;
                 document.getElementById("statusMessage").value = profile.statusMessage || '-';
-                // document.getElementById("idCardSection").classList.remove("hidden");
+                //document.getElementById("idCardSection").classList.remove("hidden");
 
                 // 🔍 ตรวจสอบว่าเคยใช้ Line นี้ยินยอมแล้วหรือยัง
                 fetch(YOUR_GAS_URL, {
@@ -237,70 +238,45 @@
             alert("เกิดข้อผิดพลาดในการเริ่มต้น LIFF: " + err.message);
         });
 
-        // Function to show PDPA section and fetch data
-        function showPDPASection() {
-            const idCardInput = document.getElementById("idCardInput");
-            const nextButton = document.getElementById("nextButton");
-                
-            const idCard = idCardInput.value.trim();
-            if (!/^\d{13}$/.test(idCard)) {
-                alert("กรุณากรอกเลขบัตรประชาชนให้ถูกต้อง (13 หลัก)");
-                return;
-            }
-
-            showLoading("กำลังตรวจสอบข้อมูล...");
+        
+        // Function to submit consent
+        function submitConsent() {
             
-            fetch("https://script.google.com/macros/s/AKfycbyu8CNN26fW7yuSUHNBpyv6KWs2ueYpAc4ZDngRoc8bJfj_3EP0H44vzKqzDP74dEnx4Q/exec", {
+            const lineUserId = document.getElementById("userId").value;
+            const displayName = document.getElementById("displayName").value;
+            const statusMessage = document.getElementById("statusMessage").value;
+            const pictureUrl = document.getElementById("profileImage").src;
+        
+            showLoading("กำลังบันทึกข้อมูล...");
+        
+            fetch(YOUR_GAS_URL, {
                 method: "POST",
                 body: new URLSearchParams({
-                    action: "checkIdCard",
-                    idCard: idCard
+                    action: "saveConsent",
+                    lineUserId,
+                    displayName,
+                    statusMessage,
+                    pictureUrl
                 })
             })
             .then(res => res.json())
             .then(data => {
                 hideLoading();
-                
-                if (data.status === 'success') {
-                    // **ปรับปรุงการแสดงผลข้อมูล ยศ-ชื่อ-สกุล ตรงนี้**
-                    const userTitle = data.title || '';
-                    const userFirstName = data.firstName || '';
-                    const userLastName = data.lastName || '';
-                    const fullUserName = `${userTitle} ${userFirstName} ${userLastName}`.trim();
-                    
-                    document.getElementById("fullUserName").textContent = fullUserName || '-';
-                    //document.getElementById("nextButton").disabled = true;
-                    document.getElementById("pdpaContent").innerHTML = data.pdpaContent || 'ไม่มีข้อมูลนโยบายคุ้มครองข้อมูลส่วนบุคคล';
-
-                    if (data.consent === '1') {
-                        alert("คุณได้ยินยอมนโยบายนี้แล้ว ไม่จำเป็นต้องทำรายการซ้ำ");
-                        //document.getElementById("consentSection").style.display = "none";
-                        document.getElementById("saveBtn").style.display = "none";
-                        document.getElementById("pdpaSection").classList.add("d-none");
-                        document.getElementById("consentMessage").textContent = "คุณได้ยอมรับเงื่อนไขตามนโยบายนี้แล้ว";
-                        document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
-                    } else {
-                        document.getElementById("consentSection").style.display = "block";
-                    }
-                    document.getElementById("pdpaSection").classList.remove("hidden");
-                    // **ส่วนที่เพิ่มเข้ามา: Disabled ช่องกรอก ID และปุ่ม "ถัดไป"**
-                    idCardInput.disabled = true;
-                    nextButton.style.display = 'none';
-                    
-                } else if (data.status === 'notFound') {
-                    alert("ไม่พบข้อมูลบัตรประชาชนนี้ในระบบ");
+                if (data.status === "success") {
+                    alert("บันทึกข้อมูลเรียบร้อยแล้ว");
+                 
+                    document.getElementById("consentMessage").textContent = "คุณได้บันทึกความยินยอมเรียบร้อยแล้ว";
+                    document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
                 } else {
-                    alert(data.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ");
+                    alert("เกิดข้อผิดพลาด: " + data.message);
                 }
             })
             .catch(err => {
-                hideLoading(); // Hide loading if an error occurs during fetch
-                alert("เกิดข้อผิดพลาดในการดึงข้อมูล: " + err.message);
-                console.error('Fetch error:', err);
+                hideLoading();
+                alert("ข้อผิดพลาดในการส่งข้อมูล: " + err.message);
+                console.error(err);
             });
         }
-
-        
 
         function closeLiff() {
           liff.closeWindow();
