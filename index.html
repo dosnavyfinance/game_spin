@@ -184,8 +184,7 @@
 
         // Function to run after LIFF is initialized and logged in
         function runApp() {
-            //document.getElementById("mainContent").classList.remove("hidden"); // Show main content
-
+            document.getElementById("mainContent").classList.remove("hidden"); // Show main content
             liff.getProfile().then(profile => {
                 document.getElementById("profileImage").src = profile.pictureUrl;
                 document.getElementById("userId").value = profile.userId;
@@ -204,8 +203,6 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-					document.getElementById("mainContent").classList.remove("hidden"); // แสดงเนื้อหาหลัก
-					
                   if (data.status === 'exists') {
                     alert("คุณได้ใช้ LINE นี้ลงทะเบียนไปแล้ว");
                     // ซ่อนแบบฟอร์มหรือ redirect ได้เลย
