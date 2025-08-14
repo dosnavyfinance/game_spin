@@ -142,14 +142,10 @@
             <button type="button" class="btn btn-primary btn-lg w-100" onclick="submitConsent()" id="nextButton" disabled>
                 <span id="buttonText">ยืนยันการเข้าร่วมกิจกรรม</span>
                 <span id="buttonSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-				Loading...
             </button>
         </div>
 		<p id="consentMessage" style="margin-top: 10px; color: red;"></p>
-<!-- ---------------------------------------------------------------------------------------------------- -->
-        
-            <button type="button" class="btn btn-info btn-lg w-100 hidden" id="closeBtn" onclick="closeLiff()">ปิด</button>
-			<!-- ---------------------------------------------------------------------------------------------------- -->
+		<button type="button" class="btn btn-info btn-lg w-100 hidden" id="closeBtn" onclick="closeLiff()">ปิด</button>
     </div>
     
     <script src="https://static.line-scdn.net/liff/edge/versions/2.9.0/sdk.js"></script>
@@ -177,10 +173,12 @@
 
             if (isLoading) {
                 button.disabled = true;
-                buttonText.style.display = "none";
+				buttonText.textContent = "Loading..."; // แก้ไข: เปลี่ยนข้อความปุ่มเป็น "Loading..."
+       			buttonText.style.display = "inline";  // แก้ไข: ให้แสดงข้อความนี้
                 spinner1.classList.remove("d-none");
             } else {
                 button.disabled = false;
+				buttonText.textContent = "ยืนยันการเข้าร่วมกิจกรรม"; // แก้ไข: เปลี่ยนข้อความกลับเป็นข้อความเดิม
                 buttonText.style.display = "inline";
                 spinner1.classList.add("d-none");
             }
