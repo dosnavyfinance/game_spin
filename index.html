@@ -173,12 +173,10 @@
 
             if (isLoading) {
                 button.disabled = true;
-				buttonText.textContent = "Loading..."; // แก้ไข: เปลี่ยนข้อความปุ่มเป็น "Loading..."
-       			buttonText.style.display = "inline";  // แก้ไข: ให้แสดงข้อความนี้
+       			buttonText.style.display = "none";
                 spinner1.classList.remove("d-none");
             } else {
                 button.disabled = false;
-				buttonText.textContent = "ยืนยันการเข้าร่วมกิจกรรม"; // แก้ไข: เปลี่ยนข้อความกลับเป็นข้อความเดิม
                 buttonText.style.display = "inline";
                 spinner1.classList.add("d-none");
             }
