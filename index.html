@@ -35,7 +35,7 @@
             color: #2c3e50;
         }
         .hidden {
-            display: none;
+            display: none !important; /* เพิ่ม !important เพื่อให้แน่ใจว่าถูกซ่อน */
         }
         button {
             padding: 10px 20px;
@@ -43,7 +43,6 @@
             font-size: 16px;
             cursor: pointer;
         }
-
         /* Loading Overlay Styles */
         #loadingOverlay {
             display: flex;
@@ -91,7 +90,7 @@
 </head>
 <body>
 
-    <div id="loadingOverlay" class="hidden">
+    <div id="loadingOverlay">
         <div style="text-align:center;">
             <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
             <p class="loading-text" id="loadingText">กำลังโหลดข้อมูล...</p>
@@ -117,44 +116,40 @@
     
     <script src="https://static.line-scdn.net/liff/edge/versions/2.9.0/sdk.js"></script>
     <script>
-        const YOUR_LIFF_ID = "2007674245-QYVBj92E"; // แก้ไข LIFF ID ของคุณ
-        const YOUR_GAS_URL = "https://script.google.com/macros/s/AKfycbyu8CNN26fW7yuSUHNBpyv6KWs2ueYpAc4ZDngRoc8bJfj_3EP0H44vzKqzDP74dEnx4Q/exec"; // แก้ไข URL ของ GAS ของคุณ
+        const YOUR_LIFF_ID = "2007674245-QYVBj92E";
+        const YOUR_GAS_URL = "https://script.google.com/macros/s/AKfycbyu8CNN26fW7yuSUHNBpyv6KWs2ueYpAc4ZDngRoc8bJfj_3EP0H44vzKqzDP74dEnx4Q/exec";
 
-        // Function to show loading overlay
         function showLoading(message = "กำลังโหลดข้อมูล...") {
             document.getElementById("loadingText").textContent = message;
             document.getElementById("loadingOverlay").classList.remove("hidden");
         }
 
-        // Function to hide loading overlay
         function hideLoading() {
             document.getElementById("loadingOverlay").classList.add("hidden");
         }
 
-        // Function to fetch user profile and populate the page
         function getUserProfile() {
             liff.getProfile().then(profile => {
                 document.getElementById("profileImage").src = profile.pictureUrl;
                 document.getElementById("displayName").textContent = profile.displayName;
                 document.getElementById("userId").value = profile.userId;
                 
-                hideLoading(); // Hide loading once profile is fetched
-                document.getElementById("mainContent").classList.remove("hidden"); // Show main content
+                hideLoading();
+                document.getElementById("mainContent").classList.remove("hidden");
             }).catch(err => {
-                hideLoading(); // Hide loading even if there's an error
+                hideLoading();
                 console.error('getProfile error:', err);
                 alert("เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์ LINE");
             });
         }
         
-        // Function to send data to GAS for validation
         function sendDataToGas() {
-            showLoading("กำลังส่งข้อมูล..."); // Show loading when sending data
+            showLoading("กำลังส่งข้อมูล...");
 
             const userId = document.getElementById("userId").value;
             const displayName = document.getElementById("displayName").textContent;
             const pictureUrl = document.getElementById("profileImage").src;
-
+            
             const postData = {
                 userId: userId,
                 displayName: displayName,
@@ -171,7 +166,7 @@
             })
             .then(res => res.json())
             .then(data => {
-                hideLoading(); // Hide loading after receiving response
+                hideLoading();
                 document.getElementById("statusMessage").textContent = data.result;
                 if (data.result === 'User ID นี้ได้ร่วมกิจกรรมไปแล้ว') {
                     document.getElementById("statusMessage").style.color = 'red';
@@ -180,14 +175,13 @@
                 }
             })
             .catch(err => {
-                hideLoading(); // Hide loading if there's an error
+                hideLoading();
                 console.error('GAS fetch error:', err);
                 document.getElementById("statusMessage").textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูลไปที่เซิร์ฟเวอร์';
                 document.getElementById("statusMessage").style.color = 'red';
             });
         }
 
-        // Function to close LIFF window
         function closeLiff() {
             liff.closeWindow();
         }
