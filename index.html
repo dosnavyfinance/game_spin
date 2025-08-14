@@ -166,17 +166,19 @@
             document.getElementById("loadingOverlay").style.display = "none";
         }
 
-		function toggleButtonLoading(isLoading) {
+		function toggleButtonLoading(isLoading, message = "") {
             const button = document.getElementById("nextButton");
             const buttonText = document.getElementById("buttonText");
             const spinner1 = document.getElementById("buttonSpinner");
 
             if (isLoading) {
                 button.disabled = true;
-       			buttonText.style.display = "none";
+       			buttonText.textContent = message;
+        		buttonText.style.display = "inline";
                 spinner1.classList.remove("d-none");
             } else {
                 button.disabled = false;
+				buttonText.textContent = message;
                 buttonText.style.display = "inline";
                 spinner1.classList.add("d-none");
             }
@@ -196,8 +198,7 @@
                 document.getElementById("statusMessage").value = profile.statusMessage || '-';
                 
                 // เริ่มกระบวนการตรวจสอบ
-                toggleButtonLoading(true);
-                document.getElementById("buttonText").textContent = "กำลังตรวจสอบข้อมูล...";
+				 toggleButtonLoading(true, "กำลังตรวจสอบข้อมูล...");
 
                 return fetch(YOUR_GAS_URL, {
                     method: 'POST',
@@ -220,8 +221,7 @@
                 hideLoading();
                 document.getElementById("mainContent").classList.remove("hidden");
                 
-                toggleButtonLoading(false);
-                document.getElementById("buttonText").textContent = "ยืนยันการเข้าร่วมกิจกรรม";
+                toggleButtonLoading(false, "ยืนยันการเข้าร่วมกิจกรรม");
 
                 if (data.status === 'exists') {
                     alert("คุณได้ใช้ LINE นี้ลงทะเบียนไปแล้ว");
