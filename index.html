@@ -136,10 +136,10 @@
 		
         <input type="hidden" id="userId" readonly>
         <input type="hidden" id="statusMessage" readonly>
-        <p style="color: red;">***กรุณาใช้บัญชี LINE ส่วนตัวของคุณเองในการลงข้อมูล เพื่อสำหรับการพัฒนาบริการอื่นๆ ต่อไป***</p>
+        <p style="color: red;">***การเข้าร่วมกิจกรรม 1 บัญชี LINE ต่อ 1 ครั้งเท่านั้น***</p>
         <hr>
         <div id="idCardSection" class="hidden">
-            <button type="button" class="btn btn-primary btn-lg w-100" onclick="submitConsent()" id="nextButton">ถัดไป</button>
+            <button type="button" class="btn btn-primary btn-lg w-100" onclick="submitConsent()" id="nextButton">ยืนยันการเข้าร่วมกิจกรรม</button>
         </div>
 		<p id="consentMessage" style="margin-top: 10px; color: red;"></p>
 <!-- ---------------------------------------------------------------------------------------------------- -->
@@ -184,16 +184,15 @@
 
         // Function to run after LIFF is initialized and logged in
         function runApp() {
-            document.getElementById("mainContent").classList.remove("hidden"); // Show main content
+            //document.getElementById("mainContent").classList.remove("hidden"); // Show main content
             
             liff.getProfile().then(profile => {
                 document.getElementById("profileImage").src = profile.pictureUrl;
                 document.getElementById("userId").value = profile.userId;
-                document.getElementById("displayName").value = profile.displayName;
+                 document.getElementById("displayName").textContent = profile.displayName; // แก้ไข: ใช้ .textContent แทน .value
                 document.getElementById("statusMessage").value = profile.statusMessage || '-';
                 //document.getElementById("idCardSection").classList.remove("hidden");
-			hideLoading(); // Hide initial loading once LIFF profile is fetched
-				
+							
                 // 🔍 ตรวจสอบว่าเคยใช้ Line นี้ยินยอมแล้วหรือยัง
                 fetch(YOUR_GAS_URL, {
                   method: 'POST',
@@ -204,18 +203,28 @@
                 })
                 .then(res => res.json())
                 .then(data => {
+					hideLoading(); // Hide initial loading once LIFF profile is fetched
+					document.getElementById("mainContent").classList.remove("hidden"); // แสดงเนื้อหาหลัก
+					
                   if (data.status === 'exists') {
                     alert("คุณได้ใช้ LINE นี้ลงทะเบียนไปแล้ว");
                     // ซ่อนแบบฟอร์มหรือ redirect ได้เลย
-                      document.getElementById("nextButton").style.display = 'none';
+					  document.getElementById("idCardSection").style.display = 'none'; // ซ่อนส่วนปุ่ม
+                      //document.getElementById("nextButton").style.display = 'none';
                       document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
                   } else {
                     document.getElementById("idCardSection").classList.remove("hidden");
                   }
                 });
-                
+                .catch(err => {
+                    hideLoading();
+                    document.getElementById("mainContent").classList.remove("hidden"); // แสดงเนื้อหาหลัก
+                    console.error('Fetch error:', err);
+                    alert("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล: " + err.message);
+                });
             }).catch(err => {
                 hideLoading(); // Hide loading even if there's an error
+				document.getElementById("mainContent").classList.remove("hidden"); // แสดงเนื้อหาหลัก
                 console.error('getProfile error:', err);
                 alert("เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์ LINE: " + err.message);
             });
@@ -264,6 +273,7 @@
                  
                     document.getElementById("consentMessage").textContent = "คุณได้บันทึกความยินยอมเรียบร้อยแล้ว";
                     document.getElementById("closeBtn").classList.remove("hidden"); // 👉 แสดงปุ่มปิด
+					document.getElementById("idCardSection").classList.add("hidden"); // ซ่อนปุ่มถัดไป
                 } else {
                     alert("เกิดข้อผิดพลาด: " + data.message);
                 }
