@@ -261,8 +261,7 @@
             const statusMessage = document.getElementById("statusMessage").value;
             const pictureUrl = document.getElementById("profileImage").src;
         
-            toggleButtonLoading(true);
-            document.getElementById("buttonText").textContent = "กำลังบันทึก...";
+            toggleButtonLoading(true, "กำลังบันทึก...");
         
             fetch(YOUR_GAS_URL, {
                 method: "POST",
