@@ -144,7 +144,7 @@
                 <span id="buttonSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
             </button>
         </div>
-		<p id="consentMessage" style="margin-top: 10px; color: red;"></p>
+		<p id="consentMessage" style="margin-top: 10px; color: blue;"></p>
 		<button type="button" class="btn btn-info btn-lg w-100 hidden" id="closeBtn" onclick="closeLiff()">ปิด</button>
     </div>
     
@@ -257,7 +257,7 @@
         // Function to submit consent
         function submitConsent() { 
             const lineUserId = document.getElementById("userId").value;
-            const displayName = document.getElementById("displayName").value;
+            const displayName = document.getElementById("displayName").textContent;
             const statusMessage = document.getElementById("statusMessage").value;
             const pictureUrl = document.getElementById("profileImage").src;
         
@@ -277,8 +277,10 @@
             .then(res => res.json())
             .then(data => {
                 hideLoading();
+				toggleButtonLoading(false);
                 if (data.status === "success") {
                     alert("บันทึกข้อมูลเรียบร้อยแล้ว");
+					window.location.href = 'https://wheelofnames.com/th/8tb-9pn';
                     document.getElementById("consentMessage").textContent = "คุณได้บันทึกความยินยอมเรียบร้อยแล้ว";
                     document.getElementById("idCardSection").style.display = 'none';
                     document.getElementById("closeBtn").classList.remove("hidden");
